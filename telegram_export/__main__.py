@@ -156,6 +156,28 @@ def parse_args():
     return parser.parse_args()
 
 
+def custom_config(config):
+    # Check logging level (let it raise on invalid)
+    level = config['Dumper'].get('LogLevel').upper()
+    handler = TqdmLoggingHandler(level)
+    handler.setFormatter(logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    ))
+    handler.setLevel(getattr(logging, level))
+    logger.addHandler(handler)
+    logger.setLevel(getattr(logging, level))
+    # Library loggers
+    level = config['Dumper'].get('LibraryLogLevel').upper()
+    telethon_logger = logging.getLogger('telethon')
+    telethon_logger.setLevel(getattr(logging, level))
+    telethon_logger.addHandler(handler)
+
+    # Convert relative paths and paths with ~
+    config['Dumper']['OutputDirectory'] = os.path.abspath(os.path.expanduser(
+        config['Dumper']['OutputDirectory']))
+    os.makedirs(config['Dumper']['OutputDirectory'], exist_ok=True)
+
+
 def fmt_dialog(dialog, id_pad=0, username_pad=0):
     """
     Space-fill a row with given padding values
@@ -244,13 +266,18 @@ async def list_or_search_dialogs(args, client):
     await client.disconnect()
 
 
-async def main(loop):
+async def main(loop, config={}):
     """
     The main telegram-export program. Goes through the
     configured dialogs and dumps them into the database.
     """
     args = parse_args()
-    config = load_config(args.config_file)
+    if config:
+        print(config)
+        custom_config(config)
+    else:
+        config = load_config(args.config_file)
+
     dumper = Dumper(config['Dumper'])
 
     if args.contexts:
@@ -271,7 +298,7 @@ async def main(loop):
         config['Dumper']['OutputDirectory'],
         config['TelegramAPI']['SessionName']
     )
-    if config.has_option('TelegramAPI', 'SecondFactorPassword'):
+    if config['TelegramAPI'].get('SecondFactorPassword') != "":
         client = await (TelegramClient(
                 absolute_session_name,
                 config['TelegramAPI']['ApiId'],
@@ -318,6 +345,7 @@ if __name__ == '__main__':
         ret = 1
     for task in asyncio.Task.all_tasks():
         task.cancel()
+        print(task)
         # Now we should await task to execute it's cancellation.
         # Cancelled task raises asyncio.CancelledError that we can suppress:
         if hasattr(task._coro, '__name__') and task._coro.__name__ == 'main':

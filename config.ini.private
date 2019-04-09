@@ -1,0 +1,127 @@
+# Configuration file for telegram-export. Default values are commented.
+# This file should be copied to config.ini and edited.
+# Use ; or # for comment lines
+
+[TelegramAPI]
+
+################ You MUST edit these values to use the exporter #################
+# You can either get your own from my.telegram.org, or use a published one (easier):
+# https://github.com/telegramdesktop/tdesktop/blob/dev/Telegram/SourceFiles/config.h#L222
+# https://git.io/vADys (permanent link)
+ApiId = 492396
+ApiHash = a1bb6743a5b29faea4e4e972b38a16dd
+
+# Your phone number. You must supply this. Should start with +country code eg +44.
+PhoneNumber = +85254908808
+
+# You can store your 2FA Password here if you don't want to enter it when logging in.
+# It's more secure to not store your password in plain text
+# SecondFactorPassword = xxxxxxxxxx
+
+# This can be anything
+; SessionName = exporter
+SessionName = exporter
+
+[Dumper]
+
+# Output folder, where the database, media, and cache files will be stored.
+# You can leave this as . to save to your current directory (when you call the
+# program), or put a path like ~/Downloads or /home/username/tg-export/. It is
+# usually a better idea to set a specific directory here.
+OutputDirectory = .
+
+# Either Whitelist or Blacklist should be present, not both. If both are
+# present, only Whitelist will be used.
+# These are lists of "entities", which can be usernames, phone numbers, or
+# telegram IDs.
+# - Whitelist will backup only the entities listed.
+# - Blacklist will backup everything except the ones listed.
+# It's usually  a good idea to set a whitelist, as otherwise you will have
+# to wait for lots of dialogs you don't care about to be downloaded. You can
+# get a list of dialogs and their associated IDs by running
+# `telegram-export.py --list-dialogs`
+# # The list must be a comma separated list of entities. You may have an
+# optional comment on an entry by using the : symbol. For example,
+#
+# Blacklist = @username : this is a comment, -1001132836449 :another comment,
+# +12345678, +232525252 : the previous phone number had no comment.
+# Phones must start with '+'  as shown. Usernames can be with or without @
+# Whitelist = @example, username, -1001132836449
+# Don't forget your commas! If you miss one after a comment, everything until
+# the next comma will be treated as a comment.
+
+
+############################# 'Advanced Options' #############################
+
+# The file types to download, comma separated. Options are:
+# "photo", "document", "video", "audio", "sticker", "voice", "chatphoto".
+# An empty list (default if omitted) means all are allowed.
+# Note that "chatphoto" includes profile pictures as well.
+; MediaWhitelist = chatphoto, photo, sticker
+MediaWhitelist = chatphoto, photo, sticker
+
+# The maximum allowed file size for a document before skipping it.
+# For instance, "800KB" will only download files smaller or equal to 800KB.
+# Allowed units are "B", "KB", "MB" and "GB" (decimal point allowed).
+#
+# No unit defaults to "MB". Setting to "0"  will not download any media.
+# Note that this only applies to documents (everything but normal photos).
+; MaxSize = 1MB
+MaxSize = 1MB
+
+# Sets the log level used across the entire dumper. Supported values
+# are the same available in the "logging" module. Defaults to DEBUG.
+# Available levels (less to more verbose): ERROR, WARNING, INFO, DEBUG, NOTSET
+; LogLevel = INFO
+LogLevel = INFO
+
+# Database filename (without '.db')
+; DBFileName = export
+DBFileName = export
+
+# The format string to be used when downloading media. You can use any literal
+# string you wish in the name, relative names (including directories, separated
+# by the '/' character) or absolute paths. Anything inside {} will be replaced
+# with a proper value, and possible placeholders are:
+# {sender_id}   - Sender ID
+# {context_id}  - Context ID
+# {name}        - Sanitized name of the context (chat)
+# {filename}    - Sanitized name of the file
+# {sender_name} - Sanitized sender name
+# {type}        - The media type (e.g. photo, document, video...)
+#
+# For instance, you could do:
+#   MediaFilenameFmt = "usermedia/{name}/{type}/{filename}"
+#
+# That would save files under "usermedia/Chat Name/media type/media file".
+# The extension will always be added automatically as a pair of ".ID.EXT". This
+# allows the program to ensure that duplicate files won't be downloaded even
+# if you change the format string at a later point. You shouldn't change this.
+#
+# To format the date of the mesage, you can use the format specifiers
+# described under the following link anywhere you wish:
+# https://docs.python.org/3.5/library/datetime.html#strftime-and-strptime-behavior
+# eg. for the year you would put %Y in the format string and for a literal %
+# you would put %%, though that would be a bit weird.
+; MediaFilenameFmt = usermedia/{name}-{context_id}/{type}-{filename}
+MediaFilenameFmt = usermedia/{name}-{context_id}/{type}-{filename}
+
+# Time after which an unchanged user should be dumped anyway, to avoid a long
+# information gap (see EXPLANATIONS.md). In minutes.
+; InvalidationTime = 7200
+InvalidationTime = 7200
+
+# Chunk size in which to retrieve messages. 100 (default, max) if not present.
+; ChunkSize = 100
+
+# Maximum chunks to retrieve from a chat (if too many). 0 (default) means all.
+; MaxChunks = 0
+
+# Sets the log level used across libaries (excluding the dumper).
+# Accepts the same values as LogLevel
+; LibraryLogLevel = WARNING
+LibraryLogLevel = WARNING
+
+# Sets proxy support
+# Proxy = socks5://user:password@127.0.0.1:1080
+Proxy = http://127.0.0.1:1080

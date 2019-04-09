@@ -43,7 +43,7 @@ class Downloader:
     def __init__(self, client, config, dumper, loop):
         self.client = client
         self.loop = loop or asyncio.get_event_loop()
-        self.max_size = config.getint('MaxSize')
+        self.max_size = config.get('MaxSize')
         self.types = {x.strip().lower()
                       for x in (config.get('MediaWhitelist') or '').split(',')
                       if x.strip()}

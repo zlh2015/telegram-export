@@ -4,7 +4,9 @@
 *.bin
 *.tl
 *.db
+*.private
 usermedia
+media
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

@@ -5,6 +5,7 @@ import re
 
 from async_generator import yield_, async_generator
 from telethon import utils
+from telethon import events
 
 from .downloader import Downloader
 
@@ -61,6 +62,30 @@ class Exporter:
         await self.client.disconnect()
         self.dumper.conn.close()
 
+    async def handler(self, event):
+        print(event)
+        chat = await event.get_input_chat()
+        print(chat)
+        entity = await self.client.get_entity(chat)
+        print(entity)
+        print(await self.client.get_peer_id(entity))
+        if 'Whitelist' in self.dumper.config:
+            must = set()
+            async for eid in entities_from_str(self.client.get_peer_id, self.dumper.config['Whitelist']):
+                must.add(eid)
+            print(must)
+            if await self.client.get_peer_id(entity) in must:
+                await self.downloader.start(entity)
+        elif 'Blacklist' in self.dumper.config:
+            avoid = set()
+            async for eid in entities_from_str(self.client.get_peer_id, self.dumper.config['Blacklist']):
+                avoid.add(eid)
+            print(avoid)
+            if await self.client.get_peer_id(entity) not in avoid:
+                await self.downloader.start(entity)
+        else:
+            await self.downloader.start(entity)
+
     async def start(self):
         """Perform a dump of the dialogs we've been told to act on"""
         self.logger.info("Saving to %s", self.dumper.config['OutputDirectory'])
@@ -81,6 +106,9 @@ class Exporter:
             # Neither blacklist nor whitelist - get all
             for dialog in await self.client.get_dialogs(limit=None):
                 await self.downloader.start(dialog.entity)
+
+        self.client.add_event_handler(self.handler, events.NewMessage)
+        await  self.client.run_until_disconnected()
 
     async def download_past_media(self):
         """

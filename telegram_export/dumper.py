@@ -70,7 +70,7 @@ class Dumper:
 
         self.chunk_size = max(int(config.get('ChunkSize', 100)), 1)
         self.max_chunks = max(int(config.get('MaxChunks', 0)), 0)
-        self.invalidation_time = max(config.getint('InvalidationTime', 0), -1)
+        self.invalidation_time = max(config.get('InvalidationTime', 0), -1)
 
         self.dump_methods = ('message', 'user', 'message_service', 'channel',
                              'supergroup', 'chat', 'adminlog_event', 'media',
@@ -606,7 +606,7 @@ class Dumper:
             # Extra fallback cases for common parts
             row['type'] = 'photo'
             row['mime_type'] = 'image/jpeg'
-            row['name'] = str(media.date)
+            row['name'] = str(media.date.strftime("%Y%m%d-%H%M%S"))
             sizes = [x for x in media.sizes
                      if isinstance(x, (types.PhotoSize, types.PhotoCachedSize))]
             if sizes:
