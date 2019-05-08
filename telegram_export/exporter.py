@@ -107,8 +107,8 @@ class Exporter:
             for dialog in await self.client.get_dialogs(limit=None):
                 await self.downloader.start(dialog.entity)
 
-        self.client.add_event_handler(self.handler, events.NewMessage)
-        await  self.client.run_until_disconnected()
+        # self.client.add_event_handler(self.handler, events.NewMessage)
+        # await  self.client.run_until_disconnected()
 
     async def download_past_media(self):
         """
