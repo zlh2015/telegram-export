@@ -40,6 +40,7 @@ class MqServer(object):
     def close(self):
         self.connection.close()
 
+
 if __name__ == "__main__":
     mq_server = MqServer()
     mq_server.start_rpc_consuming()

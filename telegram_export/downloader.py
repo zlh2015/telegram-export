@@ -133,10 +133,17 @@ class Downloader:
         """
         for m in messages:
             if isinstance(m, types.Message):
-                media_id = self.dumper.dump_media(m.media)
+                thumbnail_ids = []
+                media_id = self.dumper.dump_media(m.media, thumbnail_ids=thumbnail_ids)
+                print(media_id)
                 if media_id and self._check_media(m.media):
                     self.enqueue_media(
                         media_id, utils.get_peer_id(target), m.from_id, m.date
+                    )
+                for thumbnail_id in thumbnail_ids:
+                    print(thumbnail_ids)
+                    self.enqueue_media(
+                        thumbnail_id, utils.get_peer_id(target), m.from_id, m.date
                     )
 
                 self.dumper.dump_message(
@@ -260,6 +267,8 @@ class Downloader:
         filename += '.{}{}'.format(media_id, ext)
         if os.path.isfile(filename):
             __log__.debug('Skipping already-existing file %s', filename)
+            return
+        if media_row[0] is None or media_row[1] is None or media_row[2] is None:
             return
 
         __log__.debug('Downloading to %s', filename)

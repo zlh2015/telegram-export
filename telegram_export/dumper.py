@@ -503,7 +503,7 @@ class Dumper:
         c.execute("INSERT INTO ChatParticipants VALUES (?, ?, ?, ?)", row)
         return added, removed
 
-    def dump_media(self, media, media_type=None):
+    def dump_media(self, media, media_type=None, thumbnail_ids=[]):
         """Dump a MessageMedia into the Media table
         Params: media Telethon object
         Returns: ID of inserted row"""
@@ -534,10 +534,12 @@ class Dumper:
             if isinstance(doc, types.Document):
                 row['mime_type'] = doc.mime_type
                 row['size'] = doc.size
-                row['thumbnail_id'] = self.dump_media(doc.thumb)
+                row['thumbnail_id'] = self.dump_media(doc.thumb, thumbnail_ids=thumbnail_ids)
                 row['local_id'] = doc.id
                 row['volume_id'] = doc.version
                 row['secret'] = doc.access_hash
+                if row['thumbnail_id']:
+                    thumbnail_ids.append(row['thumbnail_id'])
                 for attr in doc.attributes:
                     if isinstance(attr, types.DocumentAttributeFilename):
                         row['name'] = attr.file_name
@@ -551,7 +553,9 @@ class Dumper:
             game = media.game
             if isinstance(game, types.Game):
                 row['name'] = game.short_name
-                row['thumbnail_id'] = self.dump_media(game.photo)
+                row['thumbnail_id'] = self.dump_media(game.photo, thumbnail_ids=thumbnail_ids)
+                if row['thumbnail_id']:
+                    thumbnail_ids.append(row['thumbnail_id'])
                 row['local_id'] = game.id
                 row['secret'] = game.access_hash
 
@@ -570,7 +574,9 @@ class Dumper:
         elif isinstance(media, types.MessageMediaInvoice):
             row['type'] = 'invoice'
             row['name'] = media.title
-            row['thumbnail_id'] = self.dump_media(media.photo)
+            row['thumbnail_id'] = self.dump_media(media.photo, thumbnail_ids=thumbnail_ids)
+            if row['thumbnail_id']:
+                thumbnail_ids.append(row['thumbnail_id'])
 
         elif isinstance(media, types.MessageMediaPhoto):
             row['type'] = 'photo'
@@ -598,7 +604,9 @@ class Dumper:
             web = media.webpage
             if isinstance(web, types.WebPage):
                 row['name'] = web.title
-                row['thumbnail_id'] = self.dump_media(web.photo, 'thumbnail')
+                row['thumbnail_id'] = self.dump_media(web.photo, 'thumbnail', thumbnail_ids=thumbnail_ids)
+                if row['thumbnail_id']:
+                    thumbnail_ids.append(row['thumbnail_id'])
                 row['local_id'] = web.id
                 row['secret'] = web.hash
 
@@ -614,7 +622,9 @@ class Dumper:
                 large = max(sizes, key=lambda s: s.w * s.h)
                 media = large
                 if small != large:
-                    row['thumbnail_id'] = self.dump_media(small, 'thumbnail')
+                    row['thumbnail_id'] = self.dump_media(small, 'thumbnail', thumbnail_ids=thumbnail_ids)
+                if row['thumbnail_id']:
+                    thumbnail_ids.append(row['thumbnail_id'])
 
         if isinstance(media, (types.PhotoSize,
                               types.PhotoCachedSize,
@@ -635,8 +645,10 @@ class Dumper:
             row['type'] = 'photo'
             row['mime_type'] = 'image/jpeg'
             row['thumbnail_id'] = self.dump_media(
-                media.photo_small, 'thumbnail'
+                media.photo_small, 'thumbnail', thumbnail_ids=thumbnail_ids
             )
+            if row['thumbnail_id']:
+                thumbnail_ids.append(row['thumbnail_id'])
             media = media.photo_big
 
         if isinstance(media, types.FileLocation):
@@ -676,9 +688,14 @@ class Dumper:
         if not forward:
             return None
 
+        if forward.from_id:
+            from_id = forward.from_id
+        else:
+            from_id = forward.channel_id
+
         row = (None,  # Database will handle this
                forward.date.timestamp(),
-               forward.from_id,
+               from_id,
                forward.channel_post,
                forward.post_author)
 

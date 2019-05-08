@@ -54,6 +54,7 @@ if __name__ == "__main__":
     import json
     # mq_client = MqClient(host="192.168.3.113", queue="rpc_queue_mgr")
     mq_client = MqClient(host="localhost", queue="rpc_queue_mgr")
+    phone = "85254908808"
     body = {
         "action": "set_task",
         "args": {
@@ -62,22 +63,22 @@ if __name__ == "__main__":
                 "config": {
                     "TelegramAPI": {
                         "ApiId": 492396,
-                        "ApiHash": "xxx",
-                        "PhoneNumber": "+8520000",
+                        "ApiHash": "a1bb6743a5b29faea4e4e972b38a16dd",
+                        "PhoneNumber": "+"+phone,
                         "SecondFactorPassword": "",
-                        "SessionName": "export",
+                        "SessionName": phone,
                     },
                     "Dumper": {
                         "OutputDirectory": ".",
                         'MediaWhitelist': 'chatphoto, photo, sticker, document, video, audio, voice',
                         'MaxSize': 2 * 1024 ** 2,
                         'LogLevel': 'INFO',
-                        'DBFileName': 'export_8520000',
+                        'DBFileName': 'db/' + phone,
                         'InvalidationTime': 7200 * 60,
                         'ChunkSize': 100,
                         'MaxChunks': 0,
                         'LibraryLogLevel': 'WARNING',
-                        'MediaFilenameFmt': 'media-8520000/{name}-{context_id}/{type}-{filename}',
+                        'MediaFilenameFmt': 'meida/' + phone + '/{context_id}/{type}-{filename}',
                         # 'Whitelist': '-390498386',
                         # 'Blacklist': 'more t',
                         'Proxy': 'http://127.0.0.1:1080',
