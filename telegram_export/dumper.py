@@ -70,11 +70,11 @@ class Dumper:
 
         self.chunk_size = max(int(config.get('ChunkSize', 100)), 1)
         self.max_chunks = max(int(config.get('MaxChunks', 0)), 0)
-        self.invalidation_time = max(config.get('InvalidationTime', 0), -1)
+        self.invalidation_time = max(config.getint('InvalidationTime', 0), -1)
 
         self.dump_methods = ('message', 'user', 'message_service', 'channel',
                              'supergroup', 'chat', 'adminlog_event', 'media',
-                             'participants_delta', 'media', 'forward')
+                             'participants_delta', 'media', 'forward', 'contact')
 
         self._dump_callbacks = {method: set() for method in self.dump_methods}
 
@@ -233,6 +233,15 @@ class Dumper:
                       "SenderID INT,"
                       "Date INT,"
                       "PRIMARY KEY (MediaID))")
+
+            c.execute("CREATE TABLE Contact("
+                      "ID INT NOT NULL,"
+                      "DateUpdated INT NOT NULL,"
+                      "FirstName TEXT NOT NULL,"
+                      "LastName TEXT,"
+                      "Username TEXT,"
+                      "Phone TEXT,"
+                      "PRIMARY KEY (ID))")
             self.conn.commit()
 
     def _upgrade_database(self, old):
@@ -292,6 +301,32 @@ class Dumper:
         else:
             cur.execute("INSERT INTO SelfInformation VALUES (?)", (self_id,))
             self.commit()
+
+    def dump_contact(self, contact):
+        """
+        Dump a contact into the Contact table.
+
+        Params:
+            contact to dump,
+
+        Returns:
+            None
+        """
+        for contact_obj in contact.contacts:
+            user_obj = list(filter(lambda item: item.id == contact_obj.user_id, contact.users))
+            values = (contact_obj.user_id,
+                      round(time.time()),
+                      user_obj[0].first_name if user_obj else "",
+                      user_obj[0].last_name if user_obj else "",
+                      user_obj[0].username if user_obj else "",
+                      user_obj[0].phone if user_obj else "",
+                      )
+
+            for callback in self._dump_callbacks['contact']:
+                callback(values)
+
+            self._insert_if_valid_date('Contact', values, date_column=1,
+                                       where=('ID', contact_obj.user_id))
 
     def dump_message(self, message, context_id, forward_id, media_id):
         """

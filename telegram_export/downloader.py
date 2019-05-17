@@ -32,6 +32,7 @@ DOWNLOAD_PART_SIZE = 256 * 1024
 USER_FULL_DELAY = 1.5
 CHAT_FULL_DELAY = 1.5
 MEDIA_DELAY = 3.0
+CONTACT_DELAY = 2.0
 HISTORY_DELAY = 1.0
 
 
@@ -43,7 +44,7 @@ class Downloader:
     def __init__(self, client, config, dumper, loop):
         self.client = client
         self.loop = loop or asyncio.get_event_loop()
-        self.max_size = config.get('MaxSize')
+        self.max_size = config.getint('MaxSize')
         self.types = {x.strip().lower()
                       for x in (config.get('MediaWhitelist') or '').split(',')
                       if x.strip()}
@@ -135,13 +136,11 @@ class Downloader:
             if isinstance(m, types.Message):
                 thumbnail_ids = []
                 media_id = self.dumper.dump_media(m.media, thumbnail_ids=thumbnail_ids)
-                print(media_id)
                 if media_id and self._check_media(m.media):
                     self.enqueue_media(
                         media_id, utils.get_peer_id(target), m.from_id, m.date
                     )
                 for thumbnail_id in thumbnail_ids:
-                    print(thumbnail_ids)
                     self.enqueue_media(
                         thumbnail_id, utils.get_peer_id(target), m.from_id, m.date
                     )
@@ -221,6 +220,12 @@ class Downloader:
             if row:
                 return row[0]
         return ''
+
+    async def _download_contacts(self):
+        start = time.time()
+        self.dumper.dump_contact(await self.client(functions.contacts.GetContactsRequest(hash=0)))
+        await asyncio.sleep(max(CONTACT_DELAY - (time.time() - start), 0),
+                            loop=self.loop)
 
     async def _download_media(self, media_id, context_id, sender_id, date,
                               bar):
@@ -618,6 +623,9 @@ class Downloader:
             if (self._incomplete_download is not None
                     and os.path.isfile(self._incomplete_download)):
                 os.remove(self._incomplete_download)
+
+    async def download_contact(self):
+        asyncio.ensure_future(self._download_contacts(), loop=self.loop)
 
     async def download_past_media(self, dumper, target_id):
         """

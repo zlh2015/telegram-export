@@ -89,6 +89,7 @@ class Exporter:
     async def start(self):
         """Perform a dump of the dialogs we've been told to act on"""
         self.logger.info("Saving to %s", self.dumper.config['OutputDirectory'])
+        await self.downloader.download_contact()
         self.dumper.check_self_user((await self.client.get_me(input_peer=True)).user_id)
         if 'Whitelist' in self.dumper.config:
             # Only whitelist, don't even get the dialogs
@@ -108,7 +109,7 @@ class Exporter:
                 await self.downloader.start(dialog.entity)
 
         # self.client.add_event_handler(self.handler, events.NewMessage)
-        # await  self.client.run_until_disconnected()
+        # await self.client.run_until_disconnected()
 
     async def download_past_media(self):
         """
