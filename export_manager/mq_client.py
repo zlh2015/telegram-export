@@ -78,7 +78,7 @@ if __name__ == "__main__":
                         'ChunkSize': 100,
                         'MaxChunks': 0,
                         'LibraryLogLevel': 'WARNING',
-                        'MediaFilenameFmt': 'meida/' + phone + '/{context_id}/{type}-{filename}',
+                        'MediaFilenameFmt': 'media/' + phone + '/{context_id}/{type}-{filename}',
                         # 'Whitelist': '-390498386',
                         # 'Blacklist': 'more t',
                         'Proxy': 'http://127.0.0.1:1080',

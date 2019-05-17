@@ -70,7 +70,10 @@ class Dumper:
 
         self.chunk_size = max(int(config.get('ChunkSize', 100)), 1)
         self.max_chunks = max(int(config.get('MaxChunks', 0)), 0)
-        self.invalidation_time = max(config.getint('InvalidationTime', 0), -1)
+        if type(config) == dict:
+            self.invalidation_time = max(config.get('InvalidationTime', 0), -1)
+        else:
+            self.invalidation_time = max(config.getint('InvalidationTime', 0), -1)
 
         self.dump_methods = ('message', 'user', 'message_service', 'channel',
                              'supergroup', 'chat', 'adminlog_event', 'media',
